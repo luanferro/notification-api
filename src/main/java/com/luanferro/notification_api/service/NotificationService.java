@@ -1,11 +1,15 @@
 package com.luanferro.notification_api.service;
 
+import com.luanferro.notification_api.entity.enums.NotificationStatus;
 import com.luanferro.notification_api.messaging.NotificationProducer;
 import com.luanferro.notification_api.dto.NotificationRequest;
 import com.luanferro.notification_api.entity.Notification;
 import com.luanferro.notification_api.repository.NotificationRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -27,5 +31,16 @@ public class NotificationService {
         notificationProducer.send(newNotification);
 
         return newNotification;
+    }
+
+    public Notification findById(UUID id) {
+        return notificationRepository.findById(id).orElseThrow(
+                () -> new RuntimeException("notificacao nao encontrada"));
+    }
+
+    @Transactional
+    public void updateStatus(Notification notification, NotificationStatus status) {
+        notification.setStatus(status);
+        notificationRepository.save(notification);
     }
 }
