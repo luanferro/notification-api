@@ -9,9 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
-
 import java.util.UUID;
-import java.util.logging.Logger;
 
 @Slf4j
 @Component
@@ -19,7 +17,6 @@ import java.util.logging.Logger;
 public class NotificationConsumer {
 
     private final NotificationService notificationService;
-    Logger logger = Logger.getLogger(NotificationConsumer.class.getName());
 
     @Transactional
     @RabbitListener(queues = RabbitMQConfig.QUEUE)
@@ -27,11 +24,19 @@ public class NotificationConsumer {
 
         UUID id = UUID.fromString(notificationId);
 
-        System.out.println("Mensagem recebida da fila: " + notificationId);
-
+        log.info("Mensagem recebida da fila: {}", notificationId);
         Notification notification = notificationService.findById(id);
-        logger.info("Mensagem enviada da fila: " + notification);
+        
+        log.info("Mensagem enviada da fila: {}", notification);
         notificationService.updateStatus(notification, NotificationStatus.SENT);
 
+    }
+
+    @RabbitListener(queues = RabbitMQConfig.DLQ)
+    public void consumeDLQ(String notificationId) {
+        UUID id = UUID.fromString(notificationId);
+        Notification notification = notificationService.findById(id);
+        notificationService.updateStatus(notification, NotificationStatus.FAILED);
+        log.info("Notificacao movida para DLQ: {}", notification.getId());
     }
 }
