@@ -6,8 +6,8 @@ services:
       - "5672:5672"
       - "15672:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: admin
-      RABBITMQ_DEFAULT_PASS: admin
+      RABBITMQ_DEFAULT_USER: ${DB_USER}
+      RABBITMQ_DEFAULT_PASS: ${DB_PASS}
 
   postgres:
     image: postgres:16
@@ -15,6 +15,6 @@ services:
     ports:
       - "5433:5432"
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: ${RABBITMQ_USER}
+      POSTGRES_PASSWORD: ${RABBITMQ_PASS}
       POSTGRES_DB: notification_db
