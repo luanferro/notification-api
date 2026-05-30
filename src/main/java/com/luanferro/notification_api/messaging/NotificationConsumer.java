@@ -3,6 +3,7 @@ package com.luanferro.notification_api.messaging;
 import com.luanferro.notification_api.config.RabbitMQConfig;
 import com.luanferro.notification_api.entity.Notification;
 import com.luanferro.notification_api.entity.enums.NotificationStatus;
+import com.luanferro.notification_api.messaging.sender.NotificationSenderResolver;
 import com.luanferro.notification_api.service.NotificationService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import java.util.UUID;
 public class NotificationConsumer {
 
     private final NotificationService notificationService;
+    private final NotificationSenderResolver senderResolver;
 
     @Transactional
     @RabbitListener(queues = RabbitMQConfig.QUEUE)
@@ -26,8 +28,9 @@ public class NotificationConsumer {
 
         log.info("Mensagem recebida da fila: {}", notificationId);
         Notification notification = notificationService.findById(id);
-        
-        log.info("Mensagem enviada da fila: {}", notification);
+
+        senderResolver.resolve(notification.getChannel()).send(notification);
+
         notificationService.updateStatus(notification, NotificationStatus.SENT);
 
     }
